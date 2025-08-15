@@ -14,7 +14,7 @@ pub struct Make<'info> {
     pub maker: Signer<'info>,
 
     #[account(
-        mint::token_program =token_program
+        mint::token_program =token_program // checking if both mint is of same token program
     )]
     pub mint_a: InterfaceAccount<'info, Mint>,
 
@@ -30,13 +30,13 @@ pub struct Make<'info> {
     )]
     pub maker_ata_a: InterfaceAccount<'info, TokenAccount>,
 
-    #[account(init, 
+    #[account(
+        init,
         payer = maker,
         seeds = [b"escrow", maker.key().as_ref(), seed.to_le_bytes().as_ref()],
         bump,
         space = 8 + Escrow::INIT_SPACE,
     )]
-
     pub escrow: Account<'info, Escrow>,
 
     #[account(
@@ -56,13 +56,12 @@ pub struct Make<'info> {
 impl<'info> Make<'info>{
 
     pub fn init_escrow(&mut self, seed:u64, receive: u64, bumps: &MakeBumps)->Result<()>{
-        
-        self.escrow.set_inner(Escrow { 
-            seed, 
-            maker: self.maker.key(), 
-            mint_a: self.mint_a.key(), 
-            mint_b: self.mint_b.key(), 
-            receive, 
+        self.escrow.set_inner(Escrow {
+            seed,
+            maker: self.maker.key(),
+            mint_a: self.mint_a.key(),
+            mint_b: self.mint_b.key(),
+            receive,
             bump: bumps.escrow,
 
         });
