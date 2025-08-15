@@ -14,6 +14,7 @@ pub struct Take<'info> {
     #[account(mut)]
     pub taker: Signer<'info>,
 
+    #[account(mut)]
     pub maker: SystemAccount<'info>,
 
     #[account(mint::token_program = token_program)]
@@ -99,10 +100,11 @@ impl<'info> Take<'info> {
             authority: self.escrow.to_account_info(),
         };
 
+        let binding = self.maker.key();
         let seeds: &[&[&[u8]]] = &[
             &[
                 b"escrow",
-                self.maker.key().as_ref(),
+                binding.as_ref(),
                 &self.escrow.seed.to_le_bytes(),
                 &[self.escrow.bump],
             ],
@@ -119,15 +121,17 @@ impl<'info> Take<'info> {
             destination: self.maker.to_account_info(),
             authority: self.escrow.to_account_info(),
         };
+
+        let binding = self.maker.key();
         let seeds: &[&[&[u8]]] = &[
             &[
                 b"escrow",
-                self.maker.key().as_ref(),
+                binding.as_ref(),
                 &self.escrow.seed.to_le_bytes(),
                 &[self.escrow.bump],
             ],
         ];
-        let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_account, seeds);
+        let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, seeds);
         close_account(cpi_ctx)?;
         Ok(())
     }

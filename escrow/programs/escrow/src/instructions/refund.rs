@@ -1,10 +1,15 @@
 use anchor_lang::prelude::*;
-use anchor_spl::{associated_token::AssociatedToken, token_interface::{close_account, transfer_checked, CloseAccount, Mint, TokenAccount, TokenInterface, TransferChecked}};
 
+use anchor_spl::{
+    associated_token::AssociatedToken,
+    token_interface::{
+        close_account, transfer_checked, CloseAccount, Mint, TokenAccount, TokenInterface,
+        TransferChecked,
+    },
+};
 use crate::state::Escrow;
 
 #[derive(Accounts)]
-
 pub struct Refund<'info> {
     #[account(mut)]
     pub maker: Signer<'info>,
@@ -13,6 +18,7 @@ pub struct Refund<'info> {
         mint::token_program = token_program
     )]
     pub mint_a: InterfaceAccount<'info, Mint>,
+
     pub mint_b: InterfaceAccount<'info, Mint>,
 
     #[account(

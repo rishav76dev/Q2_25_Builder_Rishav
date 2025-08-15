@@ -3,11 +3,13 @@ use anchor_lang::prelude::*;
 pub mod instructions;
 pub mod state;
 
-use crate::instructions::*;
 
+pub use instructions::*;
+pub use state::*;
 
 declare_id!("GGkCBhDqweeCQbJRddw5dogQYCZVDiJbjkg9KgNu631k");
 
+#[program]
 pub mod escrow_anchor {
     use super::*;
 
