@@ -10,11 +10,17 @@ pub mod vault_anchor {
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
         ctx.accounts.initialize(&ctx.bumps)?;
 
-        emit!(InitializeEvent {
-            user: ctx.accounts.user.key(),
-            vault_state: ctx.accounts.vault_state.key(),
-        });
+         emit!(InitializeEvent {
+        user: ctx.accounts.user.key(),
+        vault_state: ctx.accounts.vault_state.key(),
+        vault: ctx.accounts.vault.key(), // Include vault
+    });
 
+
+    // Optional logs for debugging
+    msg!("Initialize called by: {}", ctx.accounts.user.key());
+    msg!("Vault state: {}", ctx.accounts.vault_state.key());
+    msg!("Vault PDA: {}", ctx.accounts.vault.key());
         Ok(())
     }
 
@@ -198,6 +204,7 @@ impl Space for VaultState {
 pub struct InitializeEvent {
     pub user: Pubkey,
     pub vault_state: Pubkey,
+    pub vault: Pubkey,
 }
 
 #[event]
