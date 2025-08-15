@@ -9,19 +9,46 @@ pub mod vault_anchor {
 
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
         ctx.accounts.initialize(&ctx.bumps)?;
+
+        emit!(InitializeEvent {
+            user: ctx.accounts.user.key(),
+            vault_state: ctx.accounts.vault_state.key(),
+        });
+
         Ok(())
     }
 
     pub fn deposit(ctx: Context<VaultPayment>, amount: u64) -> Result<()> {
-        ctx.accounts.deposit(amount)
+        ctx.accounts.deposit(amount)?;
+
+        emit!(DepositEvent {
+            user: ctx.accounts.user.key(),
+            amount,
+        });
+
+        Ok(())
     }
 
     pub fn withdraw(ctx: Context<VaultPayment>, amount: u64) -> Result<()> {
-        ctx.accounts.withdraw(amount)
+        ctx.accounts.withdraw(amount)?;
+
+        emit!(WithdrawEvent {
+            user: ctx.accounts.user.key(),
+            amount,
+        });
+
+        Ok(())
     }
 
     pub fn close_account(ctx: Context<CloseAccount>) -> Result<()> {
-        ctx.accounts.close_account()
+        ctx.accounts.close_account()?;
+
+        emit!(CloseEvent {
+            user: ctx.accounts.user.key(),
+            vault_state: ctx.accounts.vault_state.key(),
+        });
+
+        Ok(())
     }
 }
 
@@ -37,15 +64,16 @@ pub struct Initialize<'info> {
         bump,
         space = VaultState::INIT_SPACE,
     )]
-    pub vault_state: Account<'info, VaultState>,
+    pub vault_state: Account<'info, VaultState>, //Your program’s on-chain struct (Anchor account) storing metadata like bumps.
 
     #[account(
-        seeds = [b"vault", user.key().as_ref()],
+        seeds = [b"vault", vault_state.key().as_ref()],
         bump,
     )]
     /// CHECK: PDA account used to hold lamports
-    pub vault: AccountInfo<'info>,
-
+    // pub vault: AccountInfo<'info>,
+    /// A raw PDA account that will hold lamports (native SOL). It’s not an Anchor Account with a struct — it’s just a plain system account.
+    pub vault: SystemAccount<'info>,
     pub system_program: Program<'info, System>,
 }
 
@@ -54,6 +82,10 @@ impl<'info> Initialize<'info> {
         self.vault_state.vault_bump = bumps.vault;
         self.vault_state.state_bump = bumps.vault_state;
         Ok(())
+        //     //    pub struct InitializeBumps {
+        //     pub vault_state: u8,  // bump for vault_state PDA
+        //     pub vault: u8,        // bump for vault PDA
+        // }
     }
 }
 
@@ -70,11 +102,10 @@ pub struct VaultPayment<'info> {
 
     #[account(
         mut,
-        seeds = [b"vault", user.key().as_ref()],
+        seeds = [b"vault", vault_state.key().as_ref()],
         bump = vault_state.vault_bump,
     )]
-    /// CHECK: PDA account used to hold lamports
-    pub vault: AccountInfo<'info>,
+    pub vault: SystemAccount<'info>,
 
     pub system_program: Program<'info, System>,
 }
@@ -99,7 +130,7 @@ impl<'info> VaultPayment<'info> {
         };
         let seeds = &[
             b"vault",
-            self.user.key.as_ref(),
+            self.vault_state.to_account_info().key.as_ref(),
             &[self.vault_state.vault_bump],
         ];
         let signer_seeds = &[&seeds[..]];
@@ -115,11 +146,11 @@ pub struct CloseAccount<'info> {
 
     #[account(
         mut,
-        seeds = [b"vault", user.key().as_ref()],
+        seeds = [b"vault", vault_state.key().as_ref()],
         bump = vault_state.vault_bump,
     )]
     /// CHECK: PDA account used to hold lamports
-    pub vault: AccountInfo<'info>,
+    pub vault: SystemAccount<'info>,
 
     #[account(
         mut,
@@ -143,7 +174,7 @@ impl<'info> CloseAccount<'info> {
         };
         let seeds = &[
             b"vault",
-            self.user.key.as_ref(),
+            self.vault_state.to_account_info().key.as_ref(),
             &[self.vault_state.vault_bump],
         ];
         let signer_seeds = &[&seeds[..]];
@@ -161,4 +192,28 @@ pub struct VaultState {
 
 impl Space for VaultState {
     const INIT_SPACE: usize = 8 + 1 + 1; // discriminator + two u8s
+}
+
+#[event]
+pub struct InitializeEvent {
+    pub user: Pubkey,
+    pub vault_state: Pubkey,
+}
+
+#[event]
+pub struct DepositEvent {
+    pub user: Pubkey,
+    pub amount: u64,
+}
+
+#[event]
+pub struct WithdrawEvent {
+    pub user: Pubkey,
+    pub amount: u64,
+}
+
+#[event]
+pub struct CloseEvent {
+    pub user: Pubkey,
+    pub vault_state: Pubkey,
 }
