@@ -7,7 +7,7 @@ pub struct Listing {
     pub price: u64,
     pub bump: u8,
 }
-
+//
 impl Space for Listing {
     const INIT_SPACE: usize = 8+ 32 * 2 + 8 + 1;
 }
