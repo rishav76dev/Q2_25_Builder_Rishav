@@ -1,22 +1,23 @@
 use anchor_lang::prelude::*;
 use anchor_spl::{
     associated_token::AssociatedToken,
-    metadata::{MasterEditionAccount, Metadata, MetadataAccount},
-    token::{transfer_checked, TransferChecked},
-    token_interface::{Mint, TokenAccount, TokenInterface},
+    metadata::{Metadata, MetadataAccount, MasterEditionAccount},
+    token_interface::{TokenInterface, Mint, TokenAccount, TransferChecked, transfer_checked},
 };
+
 use crate::state::{Listing, Marketplace};
 
 #[derive(Accounts)]
 pub struct List<'info> {
     #[account(mut)]
     pub maker: Signer<'info>,
+
     #[account(
         seeds = [b"marketplace", marketplace.name.as_str().as_bytes()],
         bump = marketplace.bump,
     )]
     pub marketplace: Account<'info, Marketplace>,
-    
+
     pub maker_mint: InterfaceAccount<'info, Mint>,
 
     #[account(
@@ -35,7 +36,7 @@ pub struct List<'info> {
     pub vault: InterfaceAccount<'info, TokenAccount>,
 
     #[account(
-        init, 
+        init,
         payer = maker,
         seeds = [marketplace.key().as_ref(), maker_mint.key().as_ref()],
         bump,
@@ -100,15 +101,16 @@ impl<'info> List<'info> {
             mint: self.maker_mint.to_account_info(),
             authority: self.maker.to_account_info(),
         };
-        
+
         let cpi_ctx = CpiContext::new(cpi_program, cpi_accounts);
 
         transfer_checked(
             cpi_ctx,
-            self.maker_ata.amount,
+            // self.maker_ata.amount,  his would try to transfer the entire token account balance. That’s correct for fungible tokens, but wrong for NFTs.
+            1,
             self.maker_mint.decimals,
         )?;
 
         Ok(())
-    }   
+    }
 }

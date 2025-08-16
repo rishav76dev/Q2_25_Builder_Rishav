@@ -1,6 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::Mint;
-use anchor_spl::token::Token;
+use anchor_spl::token_interface::{Mint,TokenInterface};
 
 use crate::state::marketplace::Marketplace;
 
@@ -21,10 +20,15 @@ pub struct Initialize<'info> {
     pub marketplace: Account<'info, Marketplace>,
 
     #[account(
-        seeds = [b"treasury", marketplace.key().as_ref()],
-        bump,
+    // PDA used as the SOL vault for marketplace fees.
+    // Not initialized here — it will be implicitly created
+    // the first time SOL is transferred into it.
+    //just derived the address here
+    seeds = [b"treasury", marketplace.key().as_ref()],
+    bump,
     )]
     pub treasury: SystemAccount<'info>,
+
 
     #[account(
         init,
@@ -34,18 +38,17 @@ pub struct Initialize<'info> {
         mint::decimals = 6,
         mint::authority = marketplace,
     )]
-    pub reward_mint: Account<'info, Mint>,
+    pub reward_mint: InterfaceAccount<'info, Mint>,
 
     pub system_program: Program<'info, System>,
-    pub token_program: Program<'info, Token>,
+    pub token_program: Interface<'info, TokenInterface>
 }
 
 impl<'info> Initialize<'info> {
     pub fn handler(&mut self, name: String, fee: u16, bumps: &InitializeBumps) -> Result<()> {
         self.marketplace.set_inner(Marketplace {
             admin: self.admin.key(),
-            fee, // Add the missing `fee` field
-            key: fee,
+            fee,
             bump: bumps.marketplace,
             treasury_bump: bumps.treasury,
             rewards_bump: bumps.reward_mint,

@@ -1,7 +1,6 @@
 use anchor_lang::prelude::*;
 
 #[account]
-
 pub struct Listing {
     pub maker: Pubkey,
     pub maker_mint: Pubkey,

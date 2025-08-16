@@ -94,8 +94,6 @@ describe("escrow", () => {
       })
     )
   );
-
-  // Initialize mints, ATAs, and mint tokens
   tx.add(
     ...[
       { mint: mintA, authority: maker, ata: maker_mint_a_ata },
