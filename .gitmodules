@@ -4,3 +4,6 @@
 [submodule "vault-anchor"]
 	path = vault-anchor
 	url = https://github.com/rishav76dev/vault-anchor.git
+[submodule "marketplace"]
+	path = marketplace
+	url = https://github.com/rishav76dev/marketplace.git
