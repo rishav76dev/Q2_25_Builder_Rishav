@@ -10,7 +10,7 @@ pub use state::*;
 declare_id!("GGkCBhDqweeCQbJRddw5dogQYCZVDiJbjkg9KgNu631k");
 
 #[program]
-pub mod escrow_anchor {
+pub mod escrow {
     use super::*;
 
     pub fn make(ctx: Context<Make>, seed: u64, receive_amount: u64, deposit_amount: u64) -> Result<()> {
@@ -25,15 +25,13 @@ pub mod escrow_anchor {
         Ok(())
     }
 
+pub fn take(ctx: Context<Take>, seed: u64) -> Result<()> {
+    ctx.accounts.transfer_to_maker()?;
+    ctx.accounts.transfer_to_taker()?;
+    ctx.accounts.close_vault()?;
+    Ok(())
+}
 
-    pub fn take(ctx: Context<Take>,) -> Result<()> {
-        ctx.accounts.transfer_to_maker()?;
-        ctx.accounts.transfer_to_taker()?;
-        ctx.accounts.close_vault()?;
-
-        Ok(())
-
-    }
 
     pub fn refund(ctx: Context<Refund>) -> Result<()> {
         ctx.accounts.refund()?;

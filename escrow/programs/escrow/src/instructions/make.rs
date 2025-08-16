@@ -28,7 +28,7 @@ pub struct Make<'info> {
     associated_token::authority = maker,
     associated_token::token_program = token_program
     )]
-    pub maker_ata_a: InterfaceAccount<'info, TokenAccount>,
+    pub maker_mint_a_ata: InterfaceAccount<'info, TokenAccount>,
 
     #[account(
         init,
@@ -72,7 +72,7 @@ impl<'info> Make<'info>{
         let cpi_program = self.token_program.to_account_info();
 
         let transfer_accounts = TransferChecked{
-            from: self.maker_ata_a.to_account_info(),
+            from: self.maker_mint_a_ata.to_account_info(),
             mint:self.mint_a.to_account_info(),
             to: self.vault.to_account_info(),
             authority:self.maker.to_account_info(),
